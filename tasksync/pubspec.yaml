@@ -110,7 +110,7 @@ dependencies:
   flutter_local_notifications: ^17.2.1+2
 
   # Haptic feedback helpers (augments HapticFeedback)
-  vibration: ^1.9.0
+  vibration: ^3.1.8
 
   # Pull-to-refresh (already available via RefreshIndicator in Flutter core)
   # No extra package needed.
