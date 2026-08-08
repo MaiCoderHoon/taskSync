@@ -210,13 +210,13 @@ class _RoleCardState extends State<_RoleCard> {
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
           decoration: BoxDecoration(
             color: _hovered
-                ? widget.option.accent.withOpacity(0.12)
-                : Colors.white.withOpacity(0.04),
+                ? widget.option.accent.withValues(alpha: 0.12)
+                : Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _hovered
-                  ? widget.option.accent.withOpacity(0.6)
-                  : Colors.white.withOpacity(0.08),
+                  ? widget.option.accent.withValues(alpha: 0.6)
+                  : Colors.white.withValues(alpha: 0.08),
             ),
           ),
           child: Row(
@@ -249,7 +249,7 @@ class _RoleCardState extends State<_RoleCard> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: Colors.white.withOpacity(0.20),
+                color: Colors.white.withValues(alpha: 0.20),
                 size: 20,
               ),
             ],

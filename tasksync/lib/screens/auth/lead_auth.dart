@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/theme.dart';
 import '../lead/lead_dashboard_screen.dart';
+import '../../widgets/bouncing_wrapper.dart';
 
 /// ─── LEAD AUTH SCREEN ─────────────────────────────────────────────────────
 /// Integration Token + Database ID entry with Test Connection flow.
@@ -18,6 +19,7 @@ class _LeadAuthScreenState extends State<LeadAuthScreen> {
   bool _testing = false;
   _ConnStatus _status = _ConnStatus.idle;
 
+  @override
   void dispose() {
     _tokenCtrl.dispose();
     _dbIdCtrl.dispose();
@@ -148,7 +150,7 @@ class _LeadAuthScreenState extends State<LeadAuthScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         color: _testing
-                            ? const Color(0xFFC9A98A).withOpacity(0.4)
+                            ? const Color(0xFFC9A98A).withValues(alpha: 0.4)
                             : const Color(0xFFC9A98A),
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -182,7 +184,7 @@ class _BackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return BouncingWrapper(
       onTap: onTap,
       child: const Icon(
         Icons.arrow_back_rounded,
@@ -221,9 +223,9 @@ class _AuthField extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.10)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
           ),
           child: TextField(
             controller: controller,
@@ -234,7 +236,7 @@ class _AuthField extends StatelessWidget {
             decoration: InputDecoration(
               hintText: placeholder,
               hintStyle: AppTextStyles.meetLink.copyWith(
-                color: Colors.white.withOpacity(0.20),
+                color: Colors.white.withValues(alpha: 0.20),
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(

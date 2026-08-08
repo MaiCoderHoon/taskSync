@@ -1,58 +1,14 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tasksync/data/mock_repository.dart';
 import 'package:tasksync/theme/theme.dart';
 import 'package:tasksync/widgets/avatar_widget.dart';
+import 'package:tasksync/screens/auth/gateway_screen.dart';
+import 'package:tasksync/data/app_state.dart';
 
 /// Personal focus list sorted by nearest deadline.
 /// Each card has a live countdown + swipe-to-complete slider.
-
-class _ExecTask {
-  final String id;
-  final String title;
-  final String project;
-  final String page;
-  final DateTime deadline;
-  _ExecTask({
-    required this.id,
-    required this.title,
-    required this.project,
-    required this.page,
-    required this.deadline,
-  });
-}
-
-final _execTasks = [
-  _ExecTask(
-    id: 't1',
-    title: 'Create design system',
-    project: 'Website Builder',
-    page: 'All page',
-    deadline: DateTime.now().add(const Duration(hours: 5)),
-  ),
-  _ExecTask(
-    id: 't6',
-    title: 'Icon set finalization',
-    project: 'Website Builder',
-    page: 'All page',
-    deadline: DateTime.now().add(const Duration(hours: 1, minutes: 30)),
-  ),
-  _ExecTask(
-    id: 't9',
-    title: 'Accessibility review',
-    project: 'Finance landing',
-    page: 'Checkout',
-    deadline: DateTime.now().add(const Duration(hours: 26)),
-  ),
-  _ExecTask(
-    id: 't10',
-    title: 'Motion design specs',
-    project: 'Mobile App',
-    page: 'Onboarding',
-    deadline: DateTime.now().add(const Duration(hours: 48)),
-  ),
-];
 
 class ExecutiveDashboardScreen extends StatefulWidget {
   const ExecutiveDashboardScreen({super.key});
@@ -63,23 +19,19 @@ class ExecutiveDashboardScreen extends StatefulWidget {
 }
 
 class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
-  late List<_ExecTask> _tasks;
-
-  @override
-  void initState() {
-    super.initState();
-    // Sort by nearest deadline
-    _tasks = List.from(_execTasks)
-      ..sort((a, b) => a.deadline.compareTo(b.deadline));
-  }
-
   void _completeTask(String id) {
     HapticFeedback.heavyImpact();
-    setState(() => _tasks.removeWhere((t) => t.id == id));
+    AppStateScope.of(context).completeTask(id);
   }
 
   @override
   Widget build(BuildContext context) {
+    final tasks = AppStateScope.of(context)
+        .tasks
+        .where((t) => t.status == TaskStatus.todo)
+        .toList()
+      ..sort((a, b) => a.deadline.compareTo(b.deadline));
+
     const accent = Color(0xFF8CC88C);
 
     return Scaffold(
@@ -96,7 +48,6 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // â”€â”€ Top bar â”€â”€
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: Row(
@@ -128,8 +79,12 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () =>
-                          Navigator.of(context).popUntil((r) => r.isFirst),
+                      onTap: () => Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (_) => const GatewayScreen(),
+                        ),
+                        (r) => false,
+                      ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -185,7 +140,7 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Sorted by nearest deadline Â· ${_tasks.length} active',
+                    'Nearest Deadline ke Hisab se · ${tasks.length} active hai!!!',
                     style: AppTextStyles.categoryLabel.copyWith(
                       color: AppColors.textMuted,
                     ),
@@ -193,13 +148,12 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
                 ),
               ),
 
-              // â”€â”€ Task list â”€â”€
               Expanded(
-                child: _tasks.isEmpty
+                child: tasks.isEmpty
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('ðŸŽ‰', style: TextStyle(fontSize: 48)),
+                          const Text('🎉', style: TextStyle(fontSize: 48)),
                           const SizedBox(height: 12),
                           Text(
                             'All tasks complete!',
@@ -212,7 +166,7 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
                         physics: const BouncingScrollPhysics(),
-                        itemCount: _tasks.length,
+                        itemCount: tasks.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 16),
                         itemBuilder: (context, i) {
                           return TweenAnimationBuilder<double>(
@@ -227,8 +181,8 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
                               ),
                             ),
                             child: _ExecTaskCard(
-                              task: _tasks[i],
-                              onComplete: () => _completeTask(_tasks[i].id),
+                              task: tasks[i],
+                              onComplete: () => _completeTask(tasks[i].id),
                             ),
                           );
                         },
@@ -245,7 +199,7 @@ class _ExecutiveDashboardScreenState extends State<ExecutiveDashboardScreen> {
 // â”€â”€ Task card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ExecTaskCard extends StatelessWidget {
-  final _ExecTask task;
+  final AppTask task;
   final VoidCallback onComplete;
 
   const _ExecTaskCard({required this.task, required this.onComplete});
@@ -471,7 +425,7 @@ class _SwipeToCompleteState extends State<_SwipeToComplete>
           // Label
           Center(
             child: Text(
-              'SLIDE TO DONE  â†’',
+              'SLIDE TO CONFIRM',
               style: AppTextStyles.metaLabel.copyWith(
                 color: Colors.white.withValues(alpha: 0.25 + pct * 0.4),
                 letterSpacing: 2,

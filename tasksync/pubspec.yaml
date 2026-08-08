@@ -96,7 +96,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  
   # Google Fonts — Fraunces, DM Sans, DM Mono
   google_fonts: ^6.2.1
 

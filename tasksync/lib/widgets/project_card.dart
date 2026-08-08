@@ -41,7 +41,7 @@ class _InitialBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: project.color.withOpacity(0.35),
+            color: project.color.withValues(alpha: 0.35),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -78,13 +78,19 @@ class _CardHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                project.title,
-                style: AppTextStyles.cardTitle.copyWith(
-                  color: dark ? AppColors.textLight : AppColors.textDark,
+              Hero(
+                tag: 'title-${project.id}',
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Text(
+                    project.title,
+                    style: AppTextStyles.cardTitle.copyWith(
+                      color: dark ? AppColors.textLight : AppColors.textDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               Text(
@@ -164,12 +170,12 @@ class _ProgressBar extends StatelessWidget {
         value: completion / 100,
         minHeight: 3,
         backgroundColor: dark
-            ? Colors.white.withOpacity(0.10)
-            : Colors.black.withOpacity(0.12),
+            ? Colors.white.withValues(alpha: 0.10)
+            : Colors.black.withValues(alpha: 0.12),
         valueColor: AlwaysStoppedAnimation<Color>(
           dark
-              ? Colors.white.withOpacity(0.50)
-              : Colors.black.withOpacity(0.38),
+              ? Colors.white.withValues(alpha: 0.50)
+              : Colors.black.withValues(alpha: 0.38),
         ),
       ),
     );
@@ -212,20 +218,27 @@ class _CardFooter extends StatelessWidget {
         // Call button
         _ActionButton(
           dark: dark,
+          circular: true,
+          bgColor: AppColors.accentGreenBg,
+          borderColor: AppColors.callBtnBorder,
           child: const Icon(
             Icons.phone_outlined,
             size: 16,
             color: AppColors.accentGreen,
           ),
-          circular: true,
-          bgColor: AppColors.accentGreenBg,
-          borderColor: AppColors.callBtnBorder,
         ),
         const SizedBox(width: 8),
 
         // More button
         _ActionButton(
           dark: dark,
+          circular: false,
+          bgColor: dark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.07),
+          borderColor: dark
+              ? Colors.white.withValues(alpha: 0.10)
+              : Colors.black.withValues(alpha: 0.10),
           child: Text(
             '›  ›  ›',
             style: TextStyle(
@@ -234,13 +247,6 @@ class _CardFooter extends StatelessWidget {
               color: dark ? AppColors.textMuted : AppColors.textMutedDark,
             ),
           ),
-          circular: false,
-          bgColor: dark
-              ? Colors.white.withOpacity(0.06)
-              : Colors.black.withOpacity(0.07),
-          borderColor: dark
-              ? Colors.white.withOpacity(0.10)
-              : Colors.black.withOpacity(0.10),
         ),
       ],
     );
@@ -351,7 +357,7 @@ class _GlassProjectCardState extends State<GlassProjectCard>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF5A2814).withOpacity(0.16),
+                      color: const Color(0xFF5A2814).withValues(alpha: 0.16),
                       blurRadius: 32,
                       offset: const Offset(0, 8),
                     ),
@@ -448,7 +454,7 @@ class _DarkProjectCardState extends State<DarkProjectCard>
                   border: Border.all(color: AppColors.cardDarkBorder),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.35),
+                      color: Colors.black.withValues(alpha: 0.35),
                       blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),

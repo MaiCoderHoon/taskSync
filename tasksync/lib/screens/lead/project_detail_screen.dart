@@ -2,20 +2,19 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/theme.dart';
+import '../../widgets/bouncing_wrapper.dart';
 import '../../data/models/project_model.dart';
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/gradient_background.dart';
 
-/// â”€â”€â”€ PROJECT DETAIL SCREEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 class ProjectDetailScreen extends StatefulWidget {
   final ProjectDetail detail;
-  final String projectTitle;
+  final Project project;
 
   const ProjectDetailScreen({
     super.key,
     required this.detail,
-    required this.projectTitle,
+    required this.project,
   });
 
   @override
@@ -74,7 +73,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               color: AppColors.textDark,
             ),
           ),
-          const _GlassPillButton(
+          _GlassPillButton(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Search pressed')),
+              );
+            },
             child: const Icon(
               Icons.search_rounded,
               size: 18,
@@ -92,10 +96,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.projectTitle,
-            style: AppTextStyles.screenTitle.copyWith(
-              color: AppColors.textDark,
+          Hero(
+            tag: 'title-${widget.project.id}',
+            child: Material(
+              type: MaterialType.transparency,
+              child: Text(
+                widget.project.title,
+                style: AppTextStyles.screenTitle.copyWith(
+                  color: AppColors.textDark,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 10),
@@ -118,10 +128,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 ),
               ),
               const Spacer(),
-              const Icon(
-                Icons.edit_outlined,
-                size: 16,
-                color: AppColors.textMutedDark,
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Edit pressed')),
+                  );
+                },
+                child: const Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: AppColors.textMutedDark,
+                ),
               ),
             ],
           ),
@@ -264,7 +281,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.black.withValues(alpha: 0.10)),
+                      border: Border.all(
+                        color: Colors.black.withValues(alpha: 0.10),
+                      ),
                     ),
                     child: const Icon(
                       Icons.copy_rounded,
@@ -458,7 +477,7 @@ class _GlassPillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return BouncingWrapper(
       onTap: onTap,
       child: Container(
         width: 38,
@@ -592,7 +611,11 @@ class _GoalTile extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.more_vert_rounded, size: 18, color: AppColors.textMuted),
+          const Icon(
+            Icons.more_vert_rounded,
+            size: 18,
+            color: AppColors.textMuted,
+          ),
         ],
       ),
     );
@@ -658,4 +681,3 @@ class _ChatBubble extends StatelessWidget {
     );
   }
 }
-

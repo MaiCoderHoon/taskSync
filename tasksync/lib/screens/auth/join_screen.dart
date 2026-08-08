@@ -4,6 +4,7 @@ import '../../theme/theme.dart';
 import 'gateway_screen.dart';
 import '../co_lead/co_lead_dashboard_screen.dart';
 import '../executive/executive_dashboard_screen.dart';
+import '../../widgets/bouncing_wrapper.dart';
 
 /// ─── JOIN SCREEN ──────────────────────────────────────────────────────────
 /// 6-digit alphanumeric code entry for Co-Lead and Executive roles.
@@ -34,8 +35,12 @@ class _JoinScreenState extends State<JoinScreen> {
 
   @override
   void dispose() {
-    for (final c in _ctrls) c.dispose();
-    for (final n in _nodes) n.dispose();
+    for (final c in _ctrls) {
+      c.dispose();
+    }
+    for (final n in _nodes) {
+      n.dispose();
+    }
     super.dispose();
   }
 
@@ -97,7 +102,7 @@ class _JoinScreenState extends State<JoinScreen> {
                 const SizedBox(height: 16),
 
                 // Back button
-                GestureDetector(
+                BouncingWrapper(
                   onTap: () => Navigator.of(context).pop(),
                   child: Icon(
                     Icons.arrow_back_rounded,
@@ -111,7 +116,7 @@ class _JoinScreenState extends State<JoinScreen> {
                 Text(
                   '${_roleLabel.toUpperCase()} ACCESS',
                   style: AppTextStyles.metaLabel.copyWith(
-                    color: _accent.withOpacity(0.7),
+                    color: _accent.withValues(alpha: 0.7),
                     letterSpacing: 5,
                   ),
                 ),
@@ -195,31 +200,31 @@ class _CodeBox extends StatelessWidget {
           FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
           LengthLimitingTextInputFormatter(1),
         ],
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'DM Mono',
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          color: const Color(0xFFF0E8DF),
+          color: Color(0xFFF0E8DF),
         ),
         decoration: InputDecoration(
           counterText: '',
           filled: true,
           fillColor: controller.text.isNotEmpty
-              ? accent.withOpacity(0.15)
-              : Colors.white.withOpacity(0.05),
+              ? accent.withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.05),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
               color: controller.text.isNotEmpty
                   ? accent
-                  : Colors.white.withOpacity(0.10),
+                  : Colors.white.withValues(alpha: 0.10),
               width: 1.5,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: Colors.white.withOpacity(0.10),
+              color: Colors.white.withValues(alpha: 0.10),
               width: 1.5,
             ),
           ),

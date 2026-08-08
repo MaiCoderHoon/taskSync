@@ -1,59 +1,12 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:tasksync/theme/theme.dart';
 import '../../data/models/project_model.dart';
-import '../../data/mock_repository.dart';
 import '../../widgets/avatar_widget.dart';
+import 'package:tasksync/screens/auth/gateway_screen.dart';
+import 'package:tasksync/data/app_state.dart';
 
 /// ─── CO-LEAD DASHBOARD SCREEN ─────────────────────────────────────────────
 /// Audit queue: lists all Done tasks, search, reopen with feedback sheet.
-
-// Mock done tasks
-final _doneTasks = [
-  _Task(
-    id: 't4',
-    title: 'Typography audit',
-    project: 'Logo Guideline',
-    assignee: MockRepository.ana,
-  ),
-  _Task(
-    id: 't5',
-    title: 'Prototype animations',
-    project: 'Mobile App',
-    assignee: MockRepository.deksha,
-  ),
-  _Task(
-    id: 't6',
-    title: 'Icon set draft',
-    project: 'Website Builder',
-    assignee: MockRepository.kush,
-  ),
-  _Task(
-    id: 't7',
-    title: 'Colour palette',
-    project: 'Finance landing',
-    assignee: MockRepository.guna,
-  ),
-  _Task(
-    id: 't8',
-    title: 'Component library',
-    project: 'Website Builder',
-    assignee: MockRepository.ana,
-  ),
-];
-
-class _Task {
-  final String id;
-  final String title;
-  final String project;
-  final Person assignee;
-  _Task({
-    required this.id,
-    required this.title,
-    required this.project,
-    required this.assignee,
-  });
-}
 
 class CoLeadDashboardScreen extends StatefulWidget {
   const CoLeadDashboardScreen({super.key});
@@ -64,7 +17,6 @@ class CoLeadDashboardScreen extends StatefulWidget {
 
 class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
   final _searchCtrl = TextEditingController();
-  List<_Task> _tasks = List.from(_doneTasks);
   String _query = '';
 
   @override
@@ -81,13 +33,16 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
     super.dispose();
   }
 
-  List<_Task> get _filtered => _tasks.where((t) {
-    if (_query.isEmpty) return true;
-    return t.title.toLowerCase().contains(_query) ||
-        t.assignee.name.toLowerCase().contains(_query);
-  }).toList();
+  List<AppTask> _getFiltered(BuildContext context) {
+    final tasks = AppStateScope.of(context).tasks.where((t) => t.status == TaskStatus.done).toList();
+    if (_query.isEmpty) return tasks;
+    return tasks.where((t) {
+      return t.title.toLowerCase().contains(_query) ||
+          t.assignee.name.toLowerCase().contains(_query);
+    }).toList();
+  }
 
-  void _showReopenSheet(_Task task) {
+  void _showReopenSheet(AppTask task) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -95,7 +50,7 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
       builder: (_) => _ReopenSheet(
         task: task,
         onConfirm: (feedback) {
-          setState(() => _tasks.removeWhere((t) => t.id == task.id));
+          AppStateScope.of(context).reopenTask(task.id, feedback);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('"${task.title}" moved to Revision Needed'),
@@ -107,8 +62,19 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
     );
   }
 
+  void _approveTask(AppTask task) {
+    AppStateScope.of(context).approveTask(task.id);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('"${task.title}" approved!'),
+        backgroundColor: const Color(0xFF8CC88C),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _getFiltered(context);
     const accent = Color(0xFF8FAADC);
 
     return Scaffold(
@@ -130,8 +96,8 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: Row(
                   children: [
-                    AvatarWidget(
-                      person: const Person(id: 'cl', name: 'Co Lead'),
+                    const AvatarWidget(
+                      person: Person(id: 'cl', name: 'Co Lead'),
                       size: 36,
                       bordered: true,
                     ),
@@ -158,17 +124,21 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
                     ),
                     GestureDetector(
                       onTap: () =>
-                          Navigator.of(context).popUntil((r) => r.isFirst),
+                          Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (_) => const GatewayScreen()),
+                        (r) => false,
+                      ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.08),
+                            color: Colors.white.withValues(alpha: 0.08),
                           ),
                         ),
                         child: Text(
@@ -214,9 +184,9 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: TextField(
                     controller: _searchCtrl,
@@ -228,7 +198,7 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
                       hintStyle: AppTextStyles.bodyRegular.copyWith(
                         color: AppColors.textMuted,
                       ),
-                      prefixIcon: Icon(
+                      prefixIcon: const Icon(
                         Icons.search_rounded,
                         color: AppColors.textMuted,
                         size: 18,
@@ -249,9 +219,9 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'STATUS = DONE · ${_filtered.length} TASKS',
+                    'STATUS = DONE · ${filtered.length} TASKS',
                     style: AppTextStyles.metaLabel.copyWith(
-                      color: accent.withOpacity(0.6),
+                      color: accent.withValues(alpha: 0.6),
                       letterSpacing: 3,
                     ),
                   ),
@@ -260,7 +230,7 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
 
               // ── Task list ──
               Expanded(
-                child: _filtered.isEmpty
+                child: filtered.isEmpty
                     ? Center(
                         child: Text(
                           'No matching tasks',
@@ -272,13 +242,14 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                         physics: const BouncingScrollPhysics(),
-                        itemCount: _filtered.length,
+                        itemCount: filtered.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, i) {
-                          final task = _filtered[i];
+                          final task = filtered[i];
                           return _AuditTile(
                             task: task,
                             onReopen: () => _showReopenSheet(task),
+                            onApprove: () => _approveTask(task),
                           );
                         },
                       ),
@@ -294,10 +265,11 @@ class _CoLeadDashboardScreenState extends State<CoLeadDashboardScreen> {
 // ── Audit tile ────────────────────────────────────────────────────────────────
 
 class _AuditTile extends StatelessWidget {
-  final _Task task;
+  final AppTask task;
   final VoidCallback onReopen;
+  final VoidCallback onApprove;
 
-  const _AuditTile({required this.task, required this.onReopen});
+  const _AuditTile({required this.task, required this.onReopen, required this.onApprove});
 
   @override
   Widget build(BuildContext context) {
@@ -337,18 +309,40 @@ class _AuditTile extends StatelessWidget {
           GestureDetector(
             onTap: onReopen,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: const Color(0xFFE0A870).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: const Color(0xFFE0A870).withValues(alpha: 0.25),
                 ),
               ),
               child: Text(
-                '↩ Reopen',
+                '↩',
                 style: AppTextStyles.metaLabel.copyWith(
                   color: const Color(0xFFE0A870),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: onApprove,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8CC88C).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFF8CC88C).withValues(alpha: 0.25),
+                ),
+              ),
+              child: Text(
+                '✓ Approve',
+                style: AppTextStyles.metaLabel.copyWith(
+                  color: const Color(0xFF8CC88C),
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
                 ),
@@ -364,7 +358,7 @@ class _AuditTile extends StatelessWidget {
 // ── Reopen bottom sheet ───────────────────────────────────────────────────────
 
 class _ReopenSheet extends StatefulWidget {
-  final _Task task;
+  final AppTask task;
   final void Function(String feedback) onConfirm;
 
   const _ReopenSheet({required this.task, required this.onConfirm});
@@ -413,7 +407,7 @@ class _ReopenSheetState extends State<_ReopenSheet> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -422,7 +416,7 @@ class _ReopenSheetState extends State<_ReopenSheet> {
             Text(
               'RE-OPEN TASK',
               style: AppTextStyles.metaLabel.copyWith(
-                color: const Color(0xFF8FAADC).withOpacity(0.7),
+                color: const Color(0xFF8FAADC).withValues(alpha: 0.7),
                 letterSpacing: 3,
               ),
             ),
@@ -439,7 +433,7 @@ class _ReopenSheetState extends State<_ReopenSheet> {
             Text(
               'REVISION FEEDBACK',
               style: AppTextStyles.metaLabel.copyWith(
-                color: const Color(0xFF8FAADC).withOpacity(0.7),
+                color: const Color(0xFF8FAADC).withValues(alpha: 0.7),
                 letterSpacing: 2,
               ),
             ),
@@ -447,9 +441,9 @@ class _ReopenSheetState extends State<_ReopenSheet> {
 
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.10)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
               ),
               child: TextField(
                 controller: _feedbackCtrl,
@@ -477,7 +471,7 @@ class _ReopenSheetState extends State<_ReopenSheet> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       alignment: Alignment.center,
@@ -501,7 +495,7 @@ class _ReopenSheetState extends State<_ReopenSheet> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
                         color: _submitting
-                            ? const Color(0xFF8FAADC).withOpacity(0.4)
+                            ? const Color(0xFF8FAADC).withValues(alpha: 0.4)
                             : const Color(0xFF8FAADC),
                         borderRadius: BorderRadius.circular(14),
                       ),
